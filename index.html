@@ -27,6 +27,7 @@
                     <div>
                         <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center justify-center md:justify-start gap-2">
                             <span>後棟水電費分攤計算系統</span>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2 py-0.5 rounded-full">雲端連線版</span>
                         </h1>
                         <p class="text-slate-400 text-xs sm:text-sm mt-0.5">透天與後棟套房獨立分攤管理</p>
                     </div>
@@ -40,10 +41,10 @@
                         <span id="authText">房東登入</span>
                     </button>
 
-                    <!-- Top Controls: Record & New Period (Only active in Landlord mode) -->
+                    <!-- Top Controls: Record & New Period -->
                     <button onclick="openHistoryModal()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg transition shadow-md flex items-center gap-1.5 border border-purple-400/30 shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        紀錄
+                        雲端紀錄
                     </button>
                     <button id="btnNewPeriod" onclick="createNewPeriod()" class="landlord-only hidden bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs sm:text-sm font-bold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-1.5 border border-amber-300/50 shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
@@ -85,7 +86,6 @@
                                 <span class="w-2 h-5 bg-emerald-600 rounded-full inline-block"></span>
                                 台電帳單資訊
                             </h2>
-                            <!-- 電號資訊小字 -->
                             <p class="text-xs text-slate-400 mt-1 pl-4 font-mono">
                                 1F電號(19號透天): 04060346109<br>
                                 2F電號(後棟): 04060346201
@@ -257,7 +257,6 @@
                                 <span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>
                                 台水帳單資訊
                             </h2>
-                            <!-- 水錶號資訊小字 -->
                             <p class="text-xs text-slate-400 mt-1 pl-4 font-mono">
                                 水錶號: 22 63528000 8
                             </p>
@@ -358,7 +357,7 @@
 
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                         <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>後棟各樓層水費分攤</span>
+                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>後棟各樓層水費分攤 (捨去/餘額歸1F)</span>
                             <span class="text-xs font-normal text-slate-500">後棟水費合計：<span id="water_statHouDongSum" class="font-mono font-bold text-sky-700">$390</span></span>
                         </h2>
 
@@ -412,7 +411,7 @@
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
             <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-xl">🔒</div>
             <h3 class="text-lg font-bold text-slate-800 mb-1">房東身分驗證</h3>
-            <p class="text-xs text-slate-500 mb-4">解鎖後即可修改參數、上傳帳單與新增歷史紀錄。</p>
+            <p class="text-xs text-slate-500 mb-4">解鎖後即可修改參數、上傳帳單與同步雲端紀錄。</p>
             
             <input type="password" id="adminPasswordInput" placeholder="請輸入房東密碼" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-mono outline-none focus:ring-2 focus:ring-amber-500 mb-4" onkeyup="if(event.key==='Enter') verifyAdminPassword()">
             
@@ -423,13 +422,13 @@
         </div>
     </div>
 
-    <!-- Modal: 歷史紀錄彈窗 -->
+    <!-- Modal: 歷史紀錄彈窗 (連線 Google 試算表) -->
     <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
         <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden transform scale-95 transition-transform duration-200" id="historyModalContainer">
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center border-b border-slate-800">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <h3 class="text-lg font-bold">歷史紀錄清單</h3>
+                    <h3 class="text-lg font-bold">雲端歷史紀錄清單</h3>
                 </div>
                 <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition hover:bg-slate-800">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -441,16 +440,16 @@
                     <button onclick="switchHistoryTab('elec')" id="histTab-elec" class="text-xs font-bold px-3 py-1.5 rounded-lg border bg-purple-600 text-white border-purple-600">⚡ 電費紀錄</button>
                     <button onclick="switchHistoryTab('water')" id="histTab-water" class="text-xs font-bold px-3 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-300">💧 水費紀錄</button>
                 </div>
-                <button onclick="saveCurrentToHistory()" class="landlord-only hidden bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1 shrink-0">
+                <button id="btnSaveCloud" onclick="saveCurrentToHistory()" class="landlord-only hidden bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1 shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    紀錄當前結果
+                    <span id="saveBtnText">儲存當前結果至雲端</span>
                 </button>
             </div>
 
-            <div id="historyListContainer" class="p-6 overflow-y-auto space-y-4 flex-1"></div>
+            <div id="historyListContainer" class="p-6 overflow-y-auto space-y-4 flex-1 min-h-[250px]"></div>
 
             <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-                <span>紀錄與帳單圖片儲存於本地記憶體中。</span>
+                <span class="flex items-center gap-1">🌐 資料同步自 Google 試算表與雲端硬碟</span>
                 <button onclick="closeHistoryModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-1.5 rounded-lg transition font-medium">關閉</button>
             </div>
         </div>
@@ -464,7 +463,7 @@
                 <span class="text-xs text-slate-400">帳單圖檔預覽</span>
                 <div class="flex items-center gap-2">
                     <button onclick="copyModalImage()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                         複製圖片
                     </button>
                     <button onclick="closeImageModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">關閉</button>
@@ -480,6 +479,9 @@
     </div>
 
     <script>
+        // Google Apps Script API 部署網址
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwzpq82rXwoF9VlZ_-7o_gw6ZpiqpxgO_E52ySnih8kMuquxetkmUMPmmOuYJ9xZGSkXA/exec";
+        
         let activeModule = 'elec';
         let isLandlordMode = false;
         const ADMIN_PASSWORD = "1234";
@@ -487,6 +489,7 @@
         let currentElecImageBase64 = "";
         let currentWaterImageBase64 = "";
         let activeHistoryTab = 'elec';
+        let fetchedRecordsCache = { elec: [], water: [] };
 
         // 權限解鎖機制
         function toggleAuthModal() {
@@ -515,7 +518,7 @@
                 isLandlordMode = true;
                 applyPermissionUI();
                 closeAuthModal();
-                showToast("房東身分驗證成功！已開啟編輯權限。");
+                showToast("房東身分驗證成功！已開啟編輯與儲存權限。");
             } else {
                 alert("密碼錯誤！");
             }
@@ -611,7 +614,7 @@
                         currentWaterImageBase64 = base64;
                         updateImgUI('water', true);
                     }
-                    showToast("帳單截圖上傳成功！");
+                    showToast("帳單截圖準備完成！");
                 };
                 img.src = e.target.result;
             };
@@ -671,6 +674,7 @@
 
             try {
                 const img = new Image();
+                img.crossOrigin = "anonymous";
                 img.src = imgSrc;
                 await new Promise(resolve => img.onload = resolve);
 
@@ -695,16 +699,16 @@
         function fallbackDownloadImage(imgSrc) {
             const a = document.createElement('a');
             a.href = imgSrc;
+            a.target = "_blank";
             a.download = `帳單截圖_${Date.now()}.jpg`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            showToast("已為您下載帳單圖片。");
+            showToast("已為您在新視窗開啟或下載帳單圖片。");
         }
 
         // ==================== CALCULATION LOGIC ==================== //
 
-        // 1. Electricity Calculation (2F/3F用 Math.floor 無條件捨去，餘額歸1F)
         function calculateElec() {
             const billMonth = document.getElementById('elec_billMonth').value || "";
             const nextReadDate = document.getElementById('elec_nextReadDate').value || "";
@@ -741,7 +745,6 @@
                 cost3f = (billAmount / totalAllInc) * (pubSharePerFloor + inc3f);
             }
 
-            // 2F/3F 無條件捨去，讓 1F 負責吸收零頭
             const round2f = Math.floor(cost2f);
             const round3f = Math.floor(cost3f);
             const round1f = billAmount - round2f - round3f;
@@ -773,7 +776,6 @@
             document.getElementById('elec_noticeText').innerText = noticeText;
         }
 
-        // 2. Water Calculation (2F/3F用 Math.floor 無條件捨去，餘額歸1F)
         function calculateWater() {
             const billMonth = document.getElementById('water_billMonth').value || "";
             const nextReadDate = document.getElementById('water_nextReadDate').value || "";
@@ -791,7 +793,6 @@
             const touTianCost = Math.round(avgRate * touTianDegrees);
             const houDongTotalCost = Math.max(0, billAmount - touTianCost);
 
-            // 2F/3F 無條件捨去，讓 1F 負責吸收餘額零頭
             const round2f = Math.floor(houDongTotalCost / 3.0);
             const round3f = Math.floor(houDongTotalCost / 3.0);
             const round1f = houDongTotalCost - round2f - round3f;
@@ -812,23 +813,12 @@
             document.getElementById('water_card3fCost').innerText = "$" + round3f.toLocaleString();
             document.getElementById('water_card3fFormula').innerText = `${houDongTotalCost} / 3 (無條件捨去)`;
 
-            // 嚴格對齊房客範例文字格式
             const noticeText = `${billMonth}水費${billAmount}元。分擔如下：19號賴家${touTianCost}元，後棟1樓${round1f}元，2樓${round2f}元，3樓${round3f}元。有問題請通知我更正，若沒問題，請併入下次房租轉帳，謝謝。下次照錶日${nextReadDate}。`;
 
             document.getElementById('water_noticeText').innerText = noticeText;
         }
 
-        // ==================== HISTORY MODAL LOGIC ==================== //
-
-        function getHistory(type) {
-            const key = type === 'elec' ? 'elec_history_records' : 'water_history_records';
-            try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
-        }
-
-        function setHistory(type, records) {
-            const key = type === 'elec' ? 'elec_history_records' : 'water_history_records';
-            localStorage.setItem(key, JSON.stringify(records));
-        }
+        // ==================== CLOUD GOOGLE SHEETS API LOGIC ==================== //
 
         function openHistoryModal() {
             switchHistoryTab(activeModule);
@@ -861,12 +851,38 @@
                 btnWater.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-sky-600 text-white border-sky-600";
                 btnElec.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-300";
             }
-            renderHistoryList();
+            fetchCloudHistory(type);
         }
 
-        function saveCurrentToHistory() {
+        // 從 Google 試算表讀取歷史紀錄
+        async function fetchCloudHistory(type) {
+            const container = document.getElementById('historyListContainer');
+            container.innerHTML = `
+                <div class="text-center py-12 text-slate-400 flex flex-col items-center justify-center gap-2">
+                    <svg class="w-8 h-8 animate-spin text-purple-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-sm">正在從 Google 雲端載入紀錄...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${GAS_API_URL}?action=getHistory&type=${type}`);
+                const records = await response.json();
+                fetchedRecordsCache[type] = records;
+                renderHistoryList(records, type);
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<div class="text-center py-8 text-rose-500 text-sm">載入雲端資料失敗，請檢查網路連線。</div>`;
+            }
+        }
+
+        // 儲存當前計算結果至 Google 試算表 + Google Drive 圖片
+        async function saveCurrentToHistory() {
             if (!isLandlordMode) return;
 
+            const saveBtnText = document.getElementById('saveBtnText');
+            saveBtnText.innerText = "上傳雲端中...";
+
+            let payload = {};
             if (activeModule === 'elec') {
                 const billMonth = document.getElementById('elec_billMonth').value || "未知月份";
                 const readDate = document.getElementById('elec_readDate').value || "";
@@ -901,17 +917,11 @@
                 const round3f = Math.floor(cost3f);
                 const round1f = billAmount - round2f - round3f;
 
-                const newRecord = {
-                    id: Date.now(), billMonth, readDate, nextReadDate, billAmount,
+                payload = {
+                    type: 'elec', billMonth, readDate, nextReadDate, billAmount,
                     prevPub, currPub, prev1f, curr1f, prev2f, curr2f, prev3f, curr3f,
-                    round1f, round2f, round3f, billImage: currentElecImageBase64,
-                    createdTime: new Date().toLocaleString('zh-TW', { hour12: false })
+                    round1f, round2f, round3f, billImageBase64: currentElecImageBase64
                 };
-
-                const records = getHistory('elec');
-                records.unshift(newRecord);
-                setHistory('elec', records);
-                showToast(`已成功記錄「${billMonth}」電費資訊！`);
             } else {
                 const billMonth = document.getElementById('water_billMonth').value || "未知月份";
                 const readDate = document.getElementById('water_readDate').value || "";
@@ -932,34 +942,35 @@
                 const round3f = Math.floor(houDongTotalCost / 3.0);
                 const round1f = houDongTotalCost - round2f - round3f;
 
-                const newRecord = {
-                    id: Date.now(), billMonth, readDate, nextReadDate, billAmount, totalWaterDegrees,
+                payload = {
+                    type: 'water', billMonth, readDate, nextReadDate, billAmount, totalWaterDegrees,
                     prevSub, currSub, round1f, round2f, round3f, touTianCost, houDongTotalCost,
-                    billImage: currentWaterImageBase64,
-                    createdTime: new Date().toLocaleString('zh-TW', { hour12: false })
+                    billImageBase64: currentWaterImageBase64
                 };
-
-                const records = getHistory('water');
-                records.unshift(newRecord);
-                setHistory('water', records);
-                showToast(`已成功記錄「${billMonth}」水費資訊！`);
             }
 
-            switchHistoryTab(activeModule);
-        }
-
-        function deleteHistoryItem(id) {
-            if (!isLandlordMode) return;
-            let records = getHistory(activeHistoryTab);
-            records = records.filter(r => r.id !== id);
-            setHistory(activeHistoryTab, records);
-            renderHistoryList();
-            showToast("已刪除該筆歷史紀錄。");
+            try {
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    showToast("已成功寫入 Google 雲端試算表！");
+                    fetchCloudHistory(activeModule);
+                } else {
+                    alert("寫入失敗：" + res.message);
+                }
+            } catch (err) {
+                alert("連線失敗：" + err.toString());
+            } finally {
+                saveBtnText.innerText = "儲存當前結果至雲端";
+            }
         }
 
         function loadHistoryItem(id) {
-            const records = getHistory(activeHistoryTab);
-            const record = records.find(r => r.id === id);
+            const records = fetchedRecordsCache[activeHistoryTab];
+            const record = records.find(r => String(r.id) === String(id));
             if (!record) return;
 
             if (activeHistoryTab === 'elec') {
@@ -1002,8 +1013,8 @@
         }
 
         function copyHistoryNotice(id) {
-            const records = getHistory(activeHistoryTab);
-            const record = records.find(r => r.id === id);
+            const records = fetchedRecordsCache[activeHistoryTab];
+            const record = records.find(r => String(r.id) === String(id));
             if (!record) return;
 
             let text = "";
@@ -1028,15 +1039,13 @@
             document.body.removeChild(textarea);
         }
 
-        function renderHistoryList() {
-            const records = getHistory(activeHistoryTab);
+        function renderHistoryList(records, type) {
             const container = document.getElementById('historyListContainer');
 
-            if (records.length === 0) {
+            if (!records || records.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12 text-slate-400">
-                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                        <p class="text-sm">尚無${activeHistoryTab === 'elec' ? '電費' : '水費'}歷史紀錄</p>
+                        <p class="text-sm">雲端試算表尚無${type === 'elec' ? '電費' : '水費'}紀錄</p>
                     </div>
                 `;
                 return;
@@ -1045,7 +1054,7 @@
             let html = '';
             records.forEach(item => {
                 const hasImg = !!item.billImage;
-                const isWater = activeHistoryTab === 'water';
+                const isWater = type === 'water';
                 html += `
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm hover:border-purple-200 transition">
                         <div class="flex justify-between items-start mb-2">
@@ -1059,28 +1068,25 @@
                                 </button>` : ''}
                                 <button onclick="loadHistoryItem(${item.id})" class="text-xs bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded transition font-medium">帶入數據</button>
                                 <button onclick="copyHistoryNotice(${item.id})" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded transition font-medium">複製通知</button>
-                                ${isLandlordMode ? `<button onclick="deleteHistoryItem(${item.id})" title="刪除紀錄" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition ml-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>` : ''}
                             </div>
                         </div>
 
                         <div class="grid grid-cols-4 gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 text-center text-xs mt-3 font-mono">
                             <div class="border-r border-slate-100">
                                 <span class="text-slate-400 block text-[10px] font-sans">總帳單</span>
-                                <span class="font-bold text-slate-800">$${item.billAmount.toLocaleString()}</span>
+                                <span class="font-bold text-slate-800">$${Number(item.billAmount).toLocaleString()}</span>
                             </div>
                             <div class="border-r border-slate-100">
                                 <span class="text-slate-400 block text-[10px] font-sans">1樓</span>
-                                <span class="font-bold text-blue-600">$${item.round1f.toLocaleString()}</span>
+                                <span class="font-bold text-blue-600">$${Number(item.round1f).toLocaleString()}</span>
                             </div>
                             <div class="border-r border-slate-100">
                                 <span class="text-slate-400 block text-[10px] font-sans">2樓</span>
-                                <span class="font-bold text-indigo-600">$${item.round2f.toLocaleString()}</span>
+                                <span class="font-bold text-indigo-600">$${Number(item.round2f).toLocaleString()}</span>
                             </div>
                             <div>
                                 <span class="text-slate-400 block text-[10px] font-sans">3樓</span>
-                                <span class="font-bold text-purple-600">$${item.round3f.toLocaleString()}</span>
+                                <span class="font-bold text-purple-600">$${Number(item.round3f).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
