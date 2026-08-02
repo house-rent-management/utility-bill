@@ -95,24 +95,24 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">帳單月份 / 備註</label>
-                                    <input type="text" id="elec_billMonth" value="8月份" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateElec()">
+                                    <input type="text" id="elec_billMonth" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateElec()">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">台電帳單總金額 (元)</label>
                                     <div class="relative">
                                         <span class="absolute left-2.5 top-2.5 text-slate-400 font-bold">$</span>
-                                        <input type="number" id="elec_billAmount" value="11230" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateElec()">
+                                        <input type="number" id="elec_billAmount" value="" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateElec()">
                                     </div>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">本期抄表拍照日期</label>
-                                    <input type="text" id="elec_readDate" value="115年07月29日" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
+                                    <input type="text" id="elec_readDate" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">下次抄表拍照日期</label>
-                                    <input type="text" id="elec_nextReadDate" value="115/09/29" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
+                                    <input type="text" id="elec_nextReadDate" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
                                 </div>
                             </div>
 
@@ -151,26 +151,26 @@
                             </div>
                             <div class="grid grid-cols-12 gap-1.5 items-center bg-amber-50/60 p-2 rounded-lg border border-amber-200/50">
                                 <div class="col-span-3 font-medium text-amber-900 text-xs sm:text-sm">後棟公電</div>
-                                <div class="col-span-3"><input type="number" id="elec_prevPub" value="4464" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
-                                <div class="col-span-3"><input type="number" id="elec_currPub" value="4571" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_prevPub" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_currPub" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
                                 <div class="col-span-3"><div id="elec_diffPub" class="w-full py-1.5 bg-amber-100/80 text-amber-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-amber-300/60">+107 度</div></div>
                             </div>
                             <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
                                 <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">1樓電表</div>
-                                <div class="col-span-3"><input type="number" id="elec_prev1f" value="34889" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
-                                <div class="col-span-3"><input type="number" id="elec_curr1f" value="35784" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_prev1f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr1f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
                                 <div class="col-span-3"><div id="elec_diff1f" class="w-full py-1.5 bg-blue-100/70 text-blue-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-blue-200/60">+895 度</div></div>
                             </div>
                             <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
                                 <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">2樓電表</div>
-                                <div class="col-span-3"><input type="number" id="elec_prev2f" value="19387" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
-                                <div class="col-span-3"><input type="number" id="elec_curr2f" value="19912" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_prev2f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr2f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
                                 <div class="col-span-3"><div id="elec_diff2f" class="w-full py-1.5 bg-indigo-100/70 text-indigo-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-indigo-200/60">+525 度</div></div>
                             </div>
                             <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
                                 <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">3樓電表</div>
-                                <div class="col-span-3"><input type="number" id="elec_prev3f" value="17133" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
-                                <div class="col-span-3"><input type="number" id="elec_curr3f" value="17897" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_prev3f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr3f" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
                                 <div class="col-span-3"><div id="elec_diff3f" class="w-full py-1.5 bg-purple-100/70 text-purple-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-purple-200/60">+764 度</div></div>
                             </div>
                         </div>
@@ -182,17 +182,17 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">公電總增加度數</div>
-                            <div id="elec_statIncPub" class="text-2xl font-bold text-amber-600 font-mono">107</div>
-                            <div class="text-xs text-slate-400 mt-1">每戶分攤 <span id="elec_statPubPerFloor">35.67</span> 度</div>
+                            <div id="elec_statIncPub" class="text-2xl font-bold text-amber-600 font-mono">0</div>
+                            <div class="text-xs text-slate-400 mt-1">每戶分攤 <span id="elec_statPubPerFloor">0</span> 度</div>
                         </div>
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">含公電總用電度數</div>
-                            <div id="elec_statTotalAll" class="text-2xl font-bold text-teal-700 font-mono">2,291</div>
-                            <div class="text-xs text-slate-400 mt-1">私人 2084 + 公電 107</div>
+                            <div id="elec_statTotalAll" class="text-2xl font-bold text-teal-700 font-mono">0</div>
+                            <div class="text-xs text-slate-400 mt-1">私人 0 + 公電 0</div>
                         </div>
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">每度電分攤單價</div>
-                            <div id="elec_statAvgRate" class="text-2xl font-bold text-emerald-600 font-mono">$4.90</div>
+                            <div id="elec_statAvgRate" class="text-2xl font-bold text-emerald-600 font-mono">$0</div>
                             <div class="text-xs text-slate-400 mt-1">帳單額 / 總用電度數</div>
                         </div>
                     </div>
@@ -208,7 +208,7 @@
                                 <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">1F</div>
                                 <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 1 樓</div><div id="elec_card1fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$4,562</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
-                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card1fInc" class="font-mono font-medium text-slate-700">895 度</span></div>
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card1fInc" class="font-mono font-medium text-slate-700">0 度</span></div>
                                     <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card1fFormula" class="font-mono text-slate-600 break-all">--</span></div>
                                 </div>
                             </div>
@@ -216,7 +216,7 @@
                                 <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">2F</div>
                                 <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 2 樓</div><div id="elec_card2fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$2,748</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
-                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card2fInc" class="font-mono font-medium text-slate-700">525 度</span></div>
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card2fInc" class="font-mono font-medium text-slate-700">0 度</span></div>
                                     <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card2fFormula" class="font-mono text-slate-600 break-all">--</span></div>
                                 </div>
                             </div>
@@ -224,7 +224,7 @@
                                 <div class="absolute top-0 right-0 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">3F</div>
                                 <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 3 樓</div><div id="elec_card3fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$3,920</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
-                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card3fInc" class="font-mono font-medium text-slate-700">764 度</span></div>
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card3fInc" class="font-mono font-medium text-slate-700">0 度</span></div>
                                     <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card3fFormula" class="font-mono text-slate-600 break-all">--</span></div>
                                 </div>
                             </div>
@@ -265,13 +265,13 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">帳單月份 / 備註</label>
-                                    <input type="text" id="water_billMonth" value="7月份" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateWater()">
+                                    <input type="text" id="water_billMonth" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateWater()">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">台水帳單總金額 (元)</label>
                                     <div class="relative">
                                         <span class="absolute left-2.5 top-2.5 text-slate-400 font-bold">$</span>
-                                        <input type="number" id="water_billAmount" value="1013" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateWater()">
+                                        <input type="number" id="water_billAmount" value="" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateWater()">
                                     </div>
                                 </div>
                             </div>
@@ -279,17 +279,17 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">台水總用水度數 (度)</label>
-                                    <input type="number" id="water_totalDegrees" value="100" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-sky-800" oninput="calculateWater()">
+                                    <input type="number" id="water_totalDegrees" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-sky-800" oninput="calculateWater()">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-500 mb-1">本期抄表拍照日期</label>
-                                    <input type="text" id="water_readDate" value="115/06/17" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
+                                    <input type="text" id="water_readDate" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">下次抄表拍照日期</label>
-                                <input type="text" id="water_nextReadDate" value="115/08/17" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
+                                <input type="text" id="water_nextReadDate" value="" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
                             </div>
 
                             <!-- 水費帳單截圖上傳區 -->
@@ -327,8 +327,8 @@
                             </div>
                             <div class="grid grid-cols-12 gap-1.5 items-center bg-sky-50/60 p-2.5 rounded-lg border border-sky-200/60">
                                 <div class="col-span-3 font-semibold text-sky-900 text-xs sm:text-sm">後棟總水表</div>
-                                <div class="col-span-3"><input type="number" id="water_prevSub" value="1250" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
-                                <div class="col-span-3"><input type="number" id="water_currSub" value="1288" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
+                                <div class="col-span-3"><input type="number" id="water_prevSub" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
+                                <div class="col-span-3"><input type="number" id="water_currSub" value="" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
                                 <div class="col-span-3"><div id="water_diffSub" class="w-full py-1.5 bg-sky-100 text-sky-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-sky-200">+38 度</div></div>
                             </div>
                         </div>
@@ -340,39 +340,39 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">19號賴家 (透天)</div>
-                            <div id="water_statTouTianCost" class="text-2xl font-bold text-amber-700 font-mono">$623</div>
-                            <div class="text-xs text-slate-400 mt-1">透天用水 <span id="water_statTouTianDeg">62</span> 度</div>
+                            <div id="water_statTouTianCost" class="text-2xl font-bold text-amber-700 font-mono">$0</div>
+                            <div class="text-xs text-slate-400 mt-1">透天用水 <span id="water_statTouTianDeg">0</span> 度</div>
                         </div>
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">後棟總應分攤水費</div>
-                            <div id="water_statHouDongCost" class="text-2xl font-bold text-sky-700 font-mono">$390</div>
-                            <div class="text-xs text-slate-400 mt-1">後棟用水 <span id="water_statHouDongDeg">38</span> 度</div>
+                            <div id="water_statHouDongCost" class="text-2xl font-bold text-sky-700 font-mono">$0</div>
+                            <div class="text-xs text-slate-400 mt-1">後棟用水 <span id="water_statHouDongDeg">0</span> 度</div>
                         </div>
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
                             <div class="text-xs font-semibold text-slate-500 mb-1">平均水費單價</div>
-                            <div id="water_statAvgRate" class="text-2xl font-bold text-blue-600 font-mono">$10.13</div>
+                            <div id="water_statAvgRate" class="text-2xl font-bold text-blue-600 font-mono">$0</div>
                             <div class="text-xs text-slate-400 mt-1">元 / 度</div>
                         </div>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                         <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>後棟各樓層水費分攤 (捨去/餘額歸1F)</span>
-                            <span class="text-xs font-normal text-slate-500">後棟水費合計：<span id="water_statHouDongSum" class="font-mono font-bold text-sky-700">$390</span></span>
+                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>後棟各樓層水費分攤</span>
+                            <span class="text-xs font-normal text-slate-500">後棟水費合計：<span id="water_statHouDongSum" class="font-mono font-bold text-sky-700">$0</span></span>
                         </h2>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
                                 <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">1F</div>
-                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 1 樓</div><div id="water_card1fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 1 樓</div><div id="water_card1fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$0</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
                                     <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 (吸收餘額)</span></div>
-                                    <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card1fFormula" class="font-mono break-all">390 - (130 + 130)</span></div>
+                                    <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card1fFormula" class="font-mono break-all">0</span></div>
                                 </div>
                             </div>
                             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
                                 <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">2F</div>
-                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 2 樓</div><div id="water_card2fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 2 樓</div><div id="water_card2fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$0</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
                                     <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 均分</span></div>
                                     <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card2fFormula" class="font-mono break-all">390 / 3 (無條件捨去)</span></div>
@@ -380,7 +380,7 @@
                             </div>
                             <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
                                 <div class="absolute top-0 right-0 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">3F</div>
-                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 3 樓</div><div id="water_card3fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 3 樓</div><div id="water_card3fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$0</div></div>
                                 <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
                                     <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 均分</span></div>
                                     <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card3fFormula" class="font-mono break-all">390 / 3 (無條件捨去)</span></div>
