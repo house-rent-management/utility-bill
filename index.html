@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後棟水電費分攤計算系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header & Top Navigation Bar -->
+    <header class="bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg border-b border-slate-700 mb-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4 gap-4">
+                <!-- Title & Permission Status Badge -->
+                <div class="text-center md:text-left flex items-center gap-3">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center justify-center md:justify-start gap-2">
+                            <span>後棟水電費分攤計算系統</span>
+                        </h1>
+                        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">透天與後棟套房獨立分攤管理</p>
+                    </div>
+                </div>
+
+                <!-- Permission Lock/Unlock & Controls -->
+                <div class="flex items-center justify-center gap-2">
+                    <!-- Permission Badge/Button -->
+                    <button id="authBtn" onclick="toggleAuthModal()" class="bg-slate-700 hover:bg-slate-600 text-amber-300 text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition border border-amber-400/30 flex items-center gap-1.5 shrink-0">
+                        <span id="authIcon">🔒</span>
+                        <span id="authText">房東登入</span>
+                    </button>
+
+                    <!-- Top Controls: Record & New Period (Only active in Landlord mode) -->
+                    <button onclick="openHistoryModal()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg transition shadow-md flex items-center gap-1.5 border border-purple-400/30 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        紀錄
+                    </button>
+                    <button id="btnNewPeriod" onclick="createNewPeriod()" class="landlord-only hidden bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs sm:text-sm font-bold px-4 py-2 rounded-lg transition shadow-md flex items-center gap-1.5 border border-amber-300/50 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                        新建期數
+                    </button>
+                </div>
+            </div>
+
+            <!-- Module Switcher Tabs: Electricity vs. Water -->
+            <div class="flex gap-2 pt-2 border-t border-slate-700/60">
+                <button onclick="switchModule('elec')" id="tab-elec" class="px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-50 text-emerald-800 border-t-2 border-emerald-500 shadow-sm">
+                    ⚡ 電費分攤
+                </button>
+                <button onclick="switchModule('water')" id="tab-water" class="px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700/60">
+                    💧 水費分攤
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
+
+        <!-- Mode Indicator Banner -->
+        <div id="modeBanner" class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm flex justify-between items-center">
+            <span class="flex items-center gap-1.5 font-medium">
+                <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
+                目前狀態：<strong id="modeTitle">👁️ 房客瀏覽模式（唯讀）</strong> — 欄位已鎖定，如需修改數據請點擊右上角登入。
+            </span>
+        </div>
+
+        <!-- ==================== MODULE 1: 電費分攤 ==================== -->
+        <div id="module-elec" class="space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Panel: Electricity Inputs -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <div class="mb-4 pb-2 border-b border-slate-100">
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span class="w-2 h-5 bg-emerald-600 rounded-full inline-block"></span>
+                                台電帳單資訊
+                            </h2>
+                            <!-- 電號資訊小字 -->
+                            <p class="text-xs text-slate-400 mt-1 pl-4 font-mono">
+                                1F電號(19號透天): 04060346109<br>
+                                2F電號(後棟): 04060346201
+                            </p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">帳單月份 / 備註</label>
+                                    <input type="text" id="elec_billMonth" value="8月份" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateElec()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">台電帳單總金額 (元)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-2.5 top-2.5 text-slate-400 font-bold">$</span>
+                                        <input type="number" id="elec_billAmount" value="11230" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateElec()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">本期抄表拍照日期</label>
+                                    <input type="text" id="elec_readDate" value="115年07月29日" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">下次抄表拍照日期</label>
+                                    <input type="text" id="elec_nextReadDate" value="115/09/29" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateElec()">
+                                </div>
+                            </div>
+
+                            <!-- 上傳區 (房東專用) -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <label class="block text-xs font-semibold text-slate-500 mb-1.5">台電帳單截圖附件</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="file" id="elec_billImageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'elec')">
+                                    <button id="elec_uploadBtn" onclick="document.getElementById('elec_billImageInput').click()" class="landlord-only hidden bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2 rounded-lg border border-slate-300 transition flex items-center gap-1.5">
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <span id="elec_uploadBtnText">上傳帳單截圖</span>
+                                    </button>
+                                    <button id="elec_previewImgBtn" onclick="previewCurrentImage('elec')" class="hidden bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-medium px-2.5 py-2 rounded-lg border border-emerald-200 transition">
+                                        預覽圖片
+                                    </button>
+                                    <button id="elec_removeImgBtn" onclick="removeCurrentImage('elec')" class="landlord-only hidden text-xs text-rose-500 hover:text-rose-700">
+                                        移除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Readings Input -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                            <span class="w-2 h-5 bg-indigo-600 rounded-full inline-block"></span>
+                            各表度數錄入
+                        </h2>
+                        <div class="space-y-3 text-sm">
+                            <div class="grid grid-cols-12 gap-1.5 font-semibold text-slate-500 text-xs px-1 text-center">
+                                <div class="col-span-3 text-left">電表類別</div>
+                                <div class="col-span-3">上期度數</div>
+                                <div class="col-span-3">本期度數</div>
+                                <div class="col-span-3 text-emerald-700">增加度數</div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1.5 items-center bg-amber-50/60 p-2 rounded-lg border border-amber-200/50">
+                                <div class="col-span-3 font-medium text-amber-900 text-xs sm:text-sm">後棟公電</div>
+                                <div class="col-span-3"><input type="number" id="elec_prevPub" value="4464" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_currPub" value="4571" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><div id="elec_diffPub" class="w-full py-1.5 bg-amber-100/80 text-amber-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-amber-300/60">+107 度</div></div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+                                <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">1樓電表</div>
+                                <div class="col-span-3"><input type="number" id="elec_prev1f" value="34889" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr1f" value="35784" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><div id="elec_diff1f" class="w-full py-1.5 bg-blue-100/70 text-blue-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-blue-200/60">+895 度</div></div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+                                <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">2樓電表</div>
+                                <div class="col-span-3"><input type="number" id="elec_prev2f" value="19387" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr2f" value="19912" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><div id="elec_diff2f" class="w-full py-1.5 bg-indigo-100/70 text-indigo-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-indigo-200/60">+525 度</div></div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1.5 items-center p-2 rounded-lg bg-slate-50 border border-slate-200/60">
+                                <div class="col-span-3 font-medium text-slate-700 text-xs sm:text-sm">3樓電表</div>
+                                <div class="col-span-3"><input type="number" id="elec_prev3f" value="17133" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><input type="number" id="elec_curr3f" value="17897" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateElec()"></div>
+                                <div class="col-span-3"><div id="elec_diff3f" class="w-full py-1.5 bg-purple-100/70 text-purple-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-purple-200/60">+764 度</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Results -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">公電總增加度數</div>
+                            <div id="elec_statIncPub" class="text-2xl font-bold text-amber-600 font-mono">107</div>
+                            <div class="text-xs text-slate-400 mt-1">每戶分攤 <span id="elec_statPubPerFloor">35.67</span> 度</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">含公電總用電度數</div>
+                            <div id="elec_statTotalAll" class="text-2xl font-bold text-teal-700 font-mono">2,291</div>
+                            <div class="text-xs text-slate-400 mt-1">私人 2084 + 公電 107</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">每度電分攤單價</div>
+                            <div id="elec_statAvgRate" class="text-2xl font-bold text-emerald-600 font-mono">$4.90</div>
+                            <div class="text-xs text-slate-400 mt-1">帳單額 / 總用電度數</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-teal-600 rounded-full inline-block"></span>各樓層電費與算式</span>
+                            <span class="text-xs font-normal text-slate-500">2F/3F無條件捨去（餘額歸1F吸收）</span>
+                        </h2>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">1F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 1 樓</div><div id="elec_card1fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$4,562</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card1fInc" class="font-mono font-medium text-slate-700">895 度</span></div>
+                                    <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card1fFormula" class="font-mono text-slate-600 break-all">--</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">2F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 2 樓</div><div id="elec_card2fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$2,748</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card2fInc" class="font-mono font-medium text-slate-700">525 度</span></div>
+                                    <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card2fFormula" class="font-mono text-slate-600 break-all">--</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">3F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 3 樓</div><div id="elec_card3fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$3,920</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>用電度數:</span> <span id="elec_card3fInc" class="font-mono font-medium text-slate-700">764 度</span></div>
+                                    <div class="text-[11px] text-slate-600 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="elec_card3fFormula" class="font-mono text-slate-600 break-all">--</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Elec Output Area -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-2 h-5 bg-emerald-600 rounded-full inline-block"></span>電費房客通知文字</h2>
+                    <button onclick="copyToClipboard('elec_noticeText')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        複製電費通知
+                    </button>
+                </div>
+                <pre id="elec_noticeText" class="bg-slate-900 text-slate-100 p-5 rounded-xl text-base font-mono leading-relaxed whitespace-pre-wrap select-all border border-slate-800"></pre>
+            </div>
+        </div>
+
+        <!-- ==================== MODULE 2: 水費分攤 ==================== -->
+        <div id="module-water" class="space-y-8 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Left Panel: Water Inputs -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <div class="mb-4 pb-2 border-b border-slate-100">
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>
+                                台水帳單資訊
+                            </h2>
+                            <!-- 水錶號資訊小字 -->
+                            <p class="text-xs text-slate-400 mt-1 pl-4 font-mono">
+                                水錶號: 22 63528000 8
+                            </p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">帳單月份 / 備註</label>
+                                    <input type="text" id="water_billMonth" value="7月份" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition" oninput="calculateWater()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">台水帳單總金額 (元)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-2.5 top-2.5 text-slate-400 font-bold">$</span>
+                                        <input type="number" id="water_billAmount" value="1013" class="editable-input w-full pl-7 pr-2 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-slate-800" oninput="calculateWater()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">台水總用水度數 (度)</label>
+                                    <input type="number" id="water_totalDegrees" value="100" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition font-semibold text-sky-800" oninput="calculateWater()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">本期抄表拍照日期</label>
+                                    <input type="text" id="water_readDate" value="115/06/17" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">下次抄表拍照日期</label>
+                                <input type="text" id="water_nextReadDate" value="115/08/17" class="editable-input w-full px-3 py-2 border border-slate-300 rounded-lg outline-none transition text-sm" oninput="calculateWater()">
+                            </div>
+
+                            <!-- 水費帳單截圖上傳區 -->
+                            <div class="pt-2 border-t border-slate-100">
+                                <label class="block text-xs font-semibold text-slate-500 mb-1.5">台水帳單截圖附件</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="file" id="water_billImageInput" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'water')">
+                                    <button id="water_uploadBtn" onclick="document.getElementById('water_billImageInput').click()" class="landlord-only hidden bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2 rounded-lg border border-slate-300 transition flex items-center gap-1.5">
+                                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <span id="water_uploadBtnText">上傳帳單截圖</span>
+                                    </button>
+                                    <button id="water_previewImgBtn" onclick="previewCurrentImage('water')" class="hidden bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-medium px-2.5 py-2 rounded-lg border border-sky-200 transition">
+                                        預覽圖片
+                                    </button>
+                                    <button id="water_removeImgBtn" onclick="removeCurrentImage('water')" class="landlord-only hidden text-xs text-rose-500 hover:text-rose-700">
+                                        移除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Water Readings Input -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+                            <span class="w-2 h-5 bg-blue-600 rounded-full inline-block"></span>
+                            後棟水表度數錄入
+                        </h2>
+                        <div class="space-y-3 text-sm">
+                            <div class="grid grid-cols-12 gap-1.5 font-semibold text-slate-500 text-xs px-1 text-center">
+                                <div class="col-span-3 text-left">水表名稱</div>
+                                <div class="col-span-3">前次度數</div>
+                                <div class="col-span-3">這次度數</div>
+                                <div class="col-span-3 text-sky-700">增加度數</div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-1.5 items-center bg-sky-50/60 p-2.5 rounded-lg border border-sky-200/60">
+                                <div class="col-span-3 font-semibold text-sky-900 text-xs sm:text-sm">後棟總水表</div>
+                                <div class="col-span-3"><input type="number" id="water_prevSub" value="1250" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
+                                <div class="col-span-3"><input type="number" id="water_currSub" value="1288" class="editable-input w-full px-1.5 py-1.5 border border-slate-300 rounded bg-white text-center font-medium text-xs sm:text-sm outline-none" oninput="calculateWater()"></div>
+                                <div class="col-span-3"><div id="water_diffSub" class="w-full py-1.5 bg-sky-100 text-sky-800 rounded font-mono font-bold text-center text-xs sm:text-sm border border-sky-200">+38 度</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Water Breakdown -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">19號賴家 (透天)</div>
+                            <div id="water_statTouTianCost" class="text-2xl font-bold text-amber-700 font-mono">$623</div>
+                            <div class="text-xs text-slate-400 mt-1">透天用水 <span id="water_statTouTianDeg">62</span> 度</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">後棟總應分攤水費</div>
+                            <div id="water_statHouDongCost" class="text-2xl font-bold text-sky-700 font-mono">$390</div>
+                            <div class="text-xs text-slate-400 mt-1">後棟用水 <span id="water_statHouDongDeg">38</span> 度</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-xs font-semibold text-slate-500 mb-1">平均水費單價</div>
+                            <div id="water_statAvgRate" class="text-2xl font-bold text-blue-600 font-mono">$10.13</div>
+                            <div class="text-xs text-slate-400 mt-1">元 / 度</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>後棟各樓層水費分攤</span>
+                            <span class="text-xs font-normal text-slate-500">後棟水費合計：<span id="water_statHouDongSum" class="font-mono font-bold text-sky-700">$390</span></span>
+                        </h2>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">1F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 1 樓</div><div id="water_card1fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 (吸收餘額)</span></div>
+                                    <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card1fFormula" class="font-mono break-all">390 - (130 + 130)</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">2F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 2 樓</div><div id="water_card2fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 均分</span></div>
+                                    <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card2fFormula" class="font-mono break-all">390 / 3 (無條件捨去)</span></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl relative flex flex-col justify-between">
+                                <div class="absolute top-0 right-0 bg-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">3F</div>
+                                <div><div class="text-sm font-semibold text-slate-600 mb-1">後棟 3 樓</div><div id="water_card3fCost" class="text-2xl font-bold text-slate-800 font-mono mb-2">$130</div></div>
+                                <div class="text-xs text-slate-500 border-t border-slate-200 pt-2 space-y-1">
+                                    <div class="flex justify-between"><span>負擔比例:</span> <span class="font-mono font-medium text-slate-700">1/3 均分</span></div>
+                                    <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1 leading-snug"><span id="water_card3fFormula" class="font-mono break-all">390 / 3 (無條件捨去)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water Output Area -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-2 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span class="w-2 h-5 bg-sky-600 rounded-full inline-block"></span>水費房客通知文字 (對齊範例)</h2>
+                    <button onclick="copyToClipboard('water_noticeText')" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        複製水費通知
+                    </button>
+                </div>
+                <pre id="water_noticeText" class="bg-slate-900 text-slate-100 p-5 rounded-xl text-base font-mono leading-relaxed whitespace-pre-wrap select-all border border-slate-800"></pre>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: 房東密碼驗證彈窗 -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-xl">🔒</div>
+            <h3 class="text-lg font-bold text-slate-800 mb-1">房東身分驗證</h3>
+            <p class="text-xs text-slate-500 mb-4">解鎖後即可修改參數、上傳帳單與新增歷史紀錄。</p>
+            
+            <input type="password" id="adminPasswordInput" placeholder="請輸入房東密碼" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center font-mono outline-none focus:ring-2 focus:ring-amber-500 mb-4" onkeyup="if(event.key==='Enter') verifyAdminPassword()">
+            
+            <div class="flex gap-2">
+                <button onclick="closeAuthModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 rounded-lg transition">取消</button>
+                <button onclick="verifyAdminPassword()" class="w-1/2 bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-bold py-2 rounded-lg transition">驗證解鎖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: 歷史紀錄彈窗 -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden transform scale-95 transition-transform duration-200" id="historyModalContainer">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <h3 class="text-lg font-bold">歷史紀錄清單</h3>
+                </div>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition hover:bg-slate-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="bg-purple-50 p-4 border-b border-purple-100 flex justify-between items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <button onclick="switchHistoryTab('elec')" id="histTab-elec" class="text-xs font-bold px-3 py-1.5 rounded-lg border bg-purple-600 text-white border-purple-600">⚡ 電費紀錄</button>
+                    <button onclick="switchHistoryTab('water')" id="histTab-water" class="text-xs font-bold px-3 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-300">💧 水費紀錄</button>
+                </div>
+                <button onclick="saveCurrentToHistory()" class="landlord-only hidden bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    紀錄當前結果
+                </button>
+            </div>
+
+            <div id="historyListContainer" class="p-6 overflow-y-auto space-y-4 flex-1"></div>
+
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                <span>紀錄與帳單圖片儲存於本地記憶體中。</span>
+                <button onclick="closeHistoryModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-1.5 rounded-lg transition font-medium">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Image Preview & Copy Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200" onclick="closeImageModal()">
+        <div class="relative max-w-3xl max-h-[90vh] overflow-hidden rounded-xl shadow-2xl bg-slate-900" onclick="event.stopPropagation()">
+            <img id="imageModalImg" src="" class="max-w-full max-h-[80vh] object-contain rounded-t-xl mx-auto">
+            <div class="p-3 bg-slate-800 border-t border-slate-700 flex justify-between items-center gap-2">
+                <span class="text-xs text-slate-400">帳單圖檔預覽</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyModalImage()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                        複製圖片
+                    </button>
+                    <button onclick="closeImageModal()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white text-sm px-4 py-3 rounded-xl shadow-xl transition opacity-0 pointer-events-none transform translate-y-2 flex items-center gap-2 border border-slate-700 z-50">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toastMsg">內容已複製！</span>
+    </div>
+
+    <script>
+        let activeModule = 'elec';
+        let isLandlordMode = false;
+        const ADMIN_PASSWORD = "1234";
+
+        let currentElecImageBase64 = "";
+        let currentWaterImageBase64 = "";
+        let activeHistoryTab = 'elec';
+
+        // 權限解鎖機制
+        function toggleAuthModal() {
+            if (isLandlordMode) {
+                isLandlordMode = false;
+                applyPermissionUI();
+                showToast("已切換回房客瀏覽模式");
+            } else {
+                document.getElementById('adminPasswordInput').value = "";
+                const modal = document.getElementById('authModal');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function verifyAdminPassword() {
+            const pwd = document.getElementById('adminPasswordInput').value;
+            if (pwd === ADMIN_PASSWORD) {
+                isLandlordMode = true;
+                applyPermissionUI();
+                closeAuthModal();
+                showToast("房東身分驗證成功！已開啟編輯權限。");
+            } else {
+                alert("密碼錯誤！");
+            }
+        }
+
+        function applyPermissionUI() {
+            const inputs = document.querySelectorAll('.editable-input');
+            const landlordBtns = document.querySelectorAll('.landlord-only');
+
+            if (isLandlordMode) {
+                document.getElementById('authIcon').innerText = "🔓";
+                document.getElementById('authText').innerText = "登出房東模式";
+                document.getElementById('modeTitle').innerText = "🔓 房東管理模式（全權限）";
+                document.getElementById('modeBanner').className = "bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm flex justify-between items-center";
+
+                inputs.forEach(i => {
+                    i.removeAttribute('readonly');
+                    i.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+                });
+                landlordBtns.forEach(b => b.classList.remove('hidden'));
+                updateImgUI('elec', !!currentElecImageBase64);
+                updateImgUI('water', !!currentWaterImageBase64);
+            } else {
+                document.getElementById('authIcon').innerText = "🔒";
+                document.getElementById('authText').innerText = "房東登入";
+                document.getElementById('modeTitle').innerText = "👁️ 房客瀏覽模式（唯讀）";
+                document.getElementById('modeBanner').className = "bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm flex justify-between items-center";
+
+                inputs.forEach(i => {
+                    i.setAttribute('readonly', true);
+                    i.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+                });
+                landlordBtns.forEach(b => b.classList.add('hidden'));
+                updateImgUI('elec', !!currentElecImageBase64);
+                updateImgUI('water', !!currentWaterImageBase64);
+            }
+        }
+
+        // Module Switcher (⚡ 電費 / 💧 水費)
+        function switchModule(mod) {
+            activeModule = mod;
+            const tabElec = document.getElementById('tab-elec');
+            const tabWater = document.getElementById('tab-water');
+            const modElec = document.getElementById('module-elec');
+            const modWater = document.getElementById('module-water');
+
+            if (mod === 'elec') {
+                tabElec.className = "px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-50 text-emerald-800 border-t-2 border-emerald-500 shadow-sm";
+                tabWater.className = "px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700/60";
+                modElec.classList.remove('hidden');
+                modWater.classList.add('hidden');
+            } else {
+                tabWater.className = "px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-50 text-sky-800 border-t-2 border-sky-500 shadow-sm";
+                tabElec.className = "px-5 py-2.5 rounded-t-lg font-bold text-sm sm:text-base transition flex items-center gap-2 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700/60";
+                modWater.classList.remove('hidden');
+                modElec.classList.add('hidden');
+            }
+        }
+
+        // Image Handling
+        function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxDim = 1200;
+                    let width = img.width, height = img.height;
+
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                    if (type === 'elec') {
+                        currentElecImageBase64 = base64;
+                        updateImgUI('elec', true);
+                    } else {
+                        currentWaterImageBase64 = base64;
+                        updateImgUI('water', true);
+                    }
+                    showToast("帳單截圖上傳成功！");
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateImgUI(type, hasImg) {
+            const uploadBtnText = document.getElementById(`${type}_uploadBtnText`);
+            const previewBtn = document.getElementById(`${type}_previewImgBtn`);
+            const removeBtn = document.getElementById(`${type}_removeImgBtn`);
+            const uploadBtn = document.getElementById(`${type}_uploadBtn`);
+
+            if (hasImg) {
+                uploadBtnText.innerText = "已附帳單 (更換)";
+                previewBtn.classList.remove('hidden');
+                if (isLandlordMode) removeBtn.classList.remove('hidden');
+                else removeBtn.classList.add('hidden');
+            } else {
+                uploadBtnText.innerText = "上傳帳單截圖";
+                previewBtn.classList.add('hidden');
+                removeBtn.classList.add('hidden');
+                document.getElementById(`${type}_billImageInput`).value = "";
+            }
+
+            if (isLandlordMode) uploadBtn.classList.remove('hidden');
+            else uploadBtn.classList.add('hidden');
+        }
+
+        function removeCurrentImage(type) {
+            if (type === 'elec') currentElecImageBase64 = "";
+            else currentWaterImageBase64 = "";
+            updateImgUI(type, false);
+            showToast("已移除當前帳單截圖");
+        }
+
+        function previewCurrentImage(type) {
+            const base64 = type === 'elec' ? currentElecImageBase64 : currentWaterImageBase64;
+            if (base64) openImageModal(base64);
+        }
+
+        function openImageModal(imgSrc) {
+            document.getElementById('imageModalImg').src = imgSrc;
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        async function copyModalImage() {
+            const imgSrc = document.getElementById('imageModalImg').src;
+            if (!imgSrc) return;
+
+            try {
+                const img = new Image();
+                img.src = imgSrc;
+                await new Promise(resolve => img.onload = resolve);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width; canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob(async (pngBlob) => {
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        await navigator.clipboard.write([ new ClipboardItem({ 'image/png': pngBlob }) ]);
+                        showToast("已將帳單圖片複製到剪貼簿！");
+                    } else {
+                        fallbackDownloadImage(imgSrc);
+                    }
+                }, 'image/png');
+            } catch (err) {
+                fallbackDownloadImage(imgSrc);
+            }
+        }
+
+        function fallbackDownloadImage(imgSrc) {
+            const a = document.createElement('a');
+            a.href = imgSrc;
+            a.download = `帳單截圖_${Date.now()}.jpg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("已為您下載帳單圖片。");
+        }
+
+        // ==================== CALCULATION LOGIC ==================== //
+
+        // 1. Electricity Calculation (2F/3F用 Math.floor 無條件捨去，餘額歸1F)
+        function calculateElec() {
+            const billMonth = document.getElementById('elec_billMonth').value || "";
+            const nextReadDate = document.getElementById('elec_nextReadDate').value || "";
+            const billAmount = parseFloat(document.getElementById('elec_billAmount').value) || 0;
+
+            const prevPub = parseFloat(document.getElementById('elec_prevPub').value) || 0;
+            const currPub = parseFloat(document.getElementById('elec_currPub').value) || 0;
+            const incPub = Math.max(0, currPub - prevPub);
+
+            const prev1f = parseFloat(document.getElementById('elec_prev1f').value) || 0;
+            const curr1f = parseFloat(document.getElementById('elec_curr1f').value) || 0;
+            const inc1f = Math.max(0, curr1f - prev1f);
+
+            const prev2f = parseFloat(document.getElementById('elec_prev2f').value) || 0;
+            const curr2f = parseFloat(document.getElementById('elec_curr2f').value) || 0;
+            const inc2f = Math.max(0, curr2f - prev2f);
+
+            const prev3f = parseFloat(document.getElementById('elec_prev3f').value) || 0;
+            const curr3f = parseFloat(document.getElementById('elec_curr3f').value) || 0;
+            const inc3f = Math.max(0, curr3f - prev3f);
+
+            document.getElementById('elec_diffPub').innerText = `+${incPub} 度`;
+            document.getElementById('elec_diff1f').innerText = `+${inc1f} 度`;
+            document.getElementById('elec_diff2f').innerText = `+${inc2f} 度`;
+            document.getElementById('elec_diff3f').innerText = `+${inc3f} 度`;
+
+            const totalAllInc = inc1f + inc2f + inc3f + incPub;
+            const pubSharePerFloor = incPub / 3.0;
+
+            let cost1f = 0, cost2f = 0, cost3f = 0;
+            if (totalAllInc > 0) {
+                cost1f = (billAmount / totalAllInc) * (pubSharePerFloor + inc1f);
+                cost2f = (billAmount / totalAllInc) * (pubSharePerFloor + inc2f);
+                cost3f = (billAmount / totalAllInc) * (pubSharePerFloor + inc3f);
+            }
+
+            // 2F/3F 無條件捨去，讓 1F 負責吸收零頭
+            const round2f = Math.floor(cost2f);
+            const round3f = Math.floor(cost3f);
+            const round1f = billAmount - round2f - round3f;
+            const avgRate = totalAllInc > 0 ? (billAmount / totalAllInc) : 0;
+
+            document.getElementById('elec_statIncPub').innerText = incPub;
+            document.getElementById('elec_statPubPerFloor').innerText = pubSharePerFloor.toFixed(2);
+            document.getElementById('elec_statTotalAll').innerText = totalAllInc.toLocaleString();
+            document.getElementById('elec_statAvgRate').innerText = "$" + avgRate.toFixed(2);
+
+            document.getElementById('elec_card1fCost').innerText = "$" + round1f.toLocaleString();
+            document.getElementById('elec_card1fInc').innerText = inc1f + " 度";
+            document.getElementById('elec_card1fFormula').innerText = `${billAmount} / ${totalAllInc} × (${pubSharePerFloor.toFixed(2)} + ${inc1f})`;
+
+            document.getElementById('elec_card2fCost').innerText = "$" + round2f.toLocaleString();
+            document.getElementById('elec_card2fInc').innerText = inc2f + " 度";
+            document.getElementById('elec_card2fFormula').innerText = `${billAmount} / ${totalAllInc} × (${pubSharePerFloor.toFixed(2)} + ${inc2f})`;
+
+            document.getElementById('elec_card3fCost').innerText = "$" + round3f.toLocaleString();
+            document.getElementById('elec_card3fInc').innerText = inc3f + " 度";
+            document.getElementById('elec_card3fFormula').innerText = `${billAmount} / ${totalAllInc} × (${pubSharePerFloor.toFixed(2)} + ${inc3f})`;
+
+            const noticeText = `${billMonth}後棟電費帳單計算結果如下：
+1樓${round1f}元
+2樓${round2f}元
+3樓${round3f}元
+如所列沒問題，請於下次併同房租匯款。下次照電表日${nextReadDate}，謝謝！`;
+
+            document.getElementById('elec_noticeText').innerText = noticeText;
+        }
+
+        // 2. Water Calculation (2F/3F用 Math.floor 無條件捨去，餘額歸1F)
+        function calculateWater() {
+            const billMonth = document.getElementById('water_billMonth').value || "";
+            const nextReadDate = document.getElementById('water_nextReadDate').value || "";
+            const billAmount = parseFloat(document.getElementById('water_billAmount').value) || 0;
+            const totalWaterDegrees = parseFloat(document.getElementById('water_totalDegrees').value) || 0;
+
+            const prevSub = parseFloat(document.getElementById('water_prevSub').value) || 0;
+            const currSub = parseFloat(document.getElementById('water_currSub').value) || 0;
+            const incSub = Math.max(0, currSub - prevSub);
+
+            document.getElementById('water_diffSub').innerText = `+${incSub} 度`;
+
+            const touTianDegrees = Math.max(0, totalWaterDegrees - incSub);
+            const avgRate = totalWaterDegrees > 0 ? (billAmount / totalWaterDegrees) : 0;
+            const touTianCost = Math.round(avgRate * touTianDegrees);
+            const houDongTotalCost = Math.max(0, billAmount - touTianCost);
+
+            // 2F/3F 無條件捨去，讓 1F 負責吸收餘額零頭
+            const round2f = Math.floor(houDongTotalCost / 3.0);
+            const round3f = Math.floor(houDongTotalCost / 3.0);
+            const round1f = houDongTotalCost - round2f - round3f;
+
+            document.getElementById('water_statTouTianCost').innerText = "$" + touTianCost.toLocaleString();
+            document.getElementById('water_statTouTianDeg').innerText = touTianDegrees;
+            document.getElementById('water_statHouDongCost').innerText = "$" + houDongTotalCost.toLocaleString();
+            document.getElementById('water_statHouDongDeg').innerText = incSub;
+            document.getElementById('water_statAvgRate').innerText = "$" + avgRate.toFixed(2);
+            document.getElementById('water_statHouDongSum').innerText = "$" + houDongTotalCost.toLocaleString();
+
+            document.getElementById('water_card1fCost').innerText = "$" + round1f.toLocaleString();
+            document.getElementById('water_card1fFormula').innerText = `${houDongTotalCost} - (${round2f} + ${round3f})`;
+
+            document.getElementById('water_card2fCost').innerText = "$" + round2f.toLocaleString();
+            document.getElementById('water_card2fFormula').innerText = `${houDongTotalCost} / 3 (無條件捨去)`;
+
+            document.getElementById('water_card3fCost').innerText = "$" + round3f.toLocaleString();
+            document.getElementById('water_card3fFormula').innerText = `${houDongTotalCost} / 3 (無條件捨去)`;
+
+            // 嚴格對齊房客範例文字格式
+            const noticeText = `${billMonth}水費${billAmount}元。分擔如下：19號賴家${touTianCost}元，後棟1樓${round1f}元，2樓${round2f}元，3樓${round3f}元。有問題請通知我更正，若沒問題，請併入下次房租轉帳，謝謝。下次照錶日${nextReadDate}。`;
+
+            document.getElementById('water_noticeText').innerText = noticeText;
+        }
+
+        // ==================== HISTORY MODAL LOGIC ==================== //
+
+        function getHistory(type) {
+            const key = type === 'elec' ? 'elec_history_records' : 'water_history_records';
+            try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+        }
+
+        function setHistory(type, records) {
+            const key = type === 'elec' ? 'elec_history_records' : 'water_history_records';
+            localStorage.setItem(key, JSON.stringify(records));
+        }
+
+        function openHistoryModal() {
+            switchHistoryTab(activeModule);
+            const modal = document.getElementById('historyModal');
+            const container = document.getElementById('historyModalContainer');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            container.classList.remove('scale-95');
+            container.classList.add('scale-100');
+        }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            const container = document.getElementById('historyModalContainer');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+        }
+
+        function switchHistoryTab(type) {
+            activeHistoryTab = type;
+            const btnElec = document.getElementById('histTab-elec');
+            const btnWater = document.getElementById('histTab-water');
+
+            if (type === 'elec') {
+                btnElec.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-purple-600 text-white border-purple-600";
+                btnWater.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-300";
+            } else {
+                btnWater.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-sky-600 text-white border-sky-600";
+                btnElec.className = "text-xs font-bold px-3 py-1.5 rounded-lg border bg-white text-slate-600 border-slate-300";
+            }
+            renderHistoryList();
+        }
+
+        function saveCurrentToHistory() {
+            if (!isLandlordMode) return;
+
+            if (activeModule === 'elec') {
+                const billMonth = document.getElementById('elec_billMonth').value || "未知月份";
+                const readDate = document.getElementById('elec_readDate').value || "";
+                const nextReadDate = document.getElementById('elec_nextReadDate').value || "";
+                const billAmount = parseFloat(document.getElementById('elec_billAmount').value) || 0;
+
+                const prevPub = parseFloat(document.getElementById('elec_prevPub').value) || 0;
+                const currPub = parseFloat(document.getElementById('elec_currPub').value) || 0;
+                const prev1f = parseFloat(document.getElementById('elec_prev1f').value) || 0;
+                const curr1f = parseFloat(document.getElementById('elec_curr1f').value) || 0;
+                const prev2f = parseFloat(document.getElementById('elec_prev2f').value) || 0;
+                const curr2f = parseFloat(document.getElementById('elec_curr2f').value) || 0;
+                const prev3f = parseFloat(document.getElementById('elec_prev3f').value) || 0;
+                const curr3f = parseFloat(document.getElementById('elec_curr3f').value) || 0;
+
+                const incPub = Math.max(0, currPub - prevPub);
+                const inc1f = Math.max(0, curr1f - prev1f);
+                const inc2f = Math.max(0, curr2f - prev2f);
+                const inc3f = Math.max(0, curr3f - prev3f);
+
+                const totalAllInc = inc1f + inc2f + inc3f + incPub;
+                const pubSharePerFloor = incPub / 3.0;
+
+                let cost1f = 0, cost2f = 0, cost3f = 0;
+                if (totalAllInc > 0) {
+                    cost1f = (billAmount / totalAllInc) * (pubSharePerFloor + inc1f);
+                    cost2f = (billAmount / totalAllInc) * (pubSharePerFloor + inc2f);
+                    cost3f = (billAmount / totalAllInc) * (pubSharePerFloor + inc3f);
+                }
+
+                const round2f = Math.floor(cost2f);
+                const round3f = Math.floor(cost3f);
+                const round1f = billAmount - round2f - round3f;
+
+                const newRecord = {
+                    id: Date.now(), billMonth, readDate, nextReadDate, billAmount,
+                    prevPub, currPub, prev1f, curr1f, prev2f, curr2f, prev3f, curr3f,
+                    round1f, round2f, round3f, billImage: currentElecImageBase64,
+                    createdTime: new Date().toLocaleString('zh-TW', { hour12: false })
+                };
+
+                const records = getHistory('elec');
+                records.unshift(newRecord);
+                setHistory('elec', records);
+                showToast(`已成功記錄「${billMonth}」電費資訊！`);
+            } else {
+                const billMonth = document.getElementById('water_billMonth').value || "未知月份";
+                const readDate = document.getElementById('water_readDate').value || "";
+                const nextReadDate = document.getElementById('water_nextReadDate').value || "";
+                const billAmount = parseFloat(document.getElementById('water_billAmount').value) || 0;
+                const totalWaterDegrees = parseFloat(document.getElementById('water_totalDegrees').value) || 0;
+
+                const prevSub = parseFloat(document.getElementById('water_prevSub').value) || 0;
+                const currSub = parseFloat(document.getElementById('water_currSub').value) || 0;
+                const incSub = Math.max(0, currSub - prevSub);
+
+                const touTianDegrees = Math.max(0, totalWaterDegrees - incSub);
+                const avgRate = totalWaterDegrees > 0 ? (billAmount / totalWaterDegrees) : 0;
+                const touTianCost = Math.round(avgRate * touTianDegrees);
+                const houDongTotalCost = Math.max(0, billAmount - touTianCost);
+
+                const round2f = Math.floor(houDongTotalCost / 3.0);
+                const round3f = Math.floor(houDongTotalCost / 3.0);
+                const round1f = houDongTotalCost - round2f - round3f;
+
+                const newRecord = {
+                    id: Date.now(), billMonth, readDate, nextReadDate, billAmount, totalWaterDegrees,
+                    prevSub, currSub, round1f, round2f, round3f, touTianCost, houDongTotalCost,
+                    billImage: currentWaterImageBase64,
+                    createdTime: new Date().toLocaleString('zh-TW', { hour12: false })
+                };
+
+                const records = getHistory('water');
+                records.unshift(newRecord);
+                setHistory('water', records);
+                showToast(`已成功記錄「${billMonth}」水費資訊！`);
+            }
+
+            switchHistoryTab(activeModule);
+        }
+
+        function deleteHistoryItem(id) {
+            if (!isLandlordMode) return;
+            let records = getHistory(activeHistoryTab);
+            records = records.filter(r => r.id !== id);
+            setHistory(activeHistoryTab, records);
+            renderHistoryList();
+            showToast("已刪除該筆歷史紀錄。");
+        }
+
+        function loadHistoryItem(id) {
+            const records = getHistory(activeHistoryTab);
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+
+            if (activeHistoryTab === 'elec') {
+                switchModule('elec');
+                document.getElementById('elec_billMonth').value = record.billMonth || "";
+                document.getElementById('elec_readDate').value = record.readDate || "";
+                document.getElementById('elec_nextReadDate').value = record.nextReadDate || "";
+                document.getElementById('elec_billAmount').value = record.billAmount || 0;
+
+                document.getElementById('elec_prevPub').value = record.prevPub || 0;
+                document.getElementById('elec_currPub').value = record.currPub || 0;
+                document.getElementById('elec_prev1f').value = record.prev1f || 0;
+                document.getElementById('elec_curr1f').value = record.curr1f || 0;
+                document.getElementById('elec_prev2f').value = record.prev2f || 0;
+                document.getElementById('elec_curr2f').value = record.curr2f || 0;
+                document.getElementById('elec_prev3f').value = record.prev3f || 0;
+                document.getElementById('elec_curr3f').value = record.curr3f || 0;
+
+                currentElecImageBase64 = record.billImage || "";
+                updateImgUI('elec', !!currentElecImageBase64);
+                calculateElec();
+            } else {
+                switchModule('water');
+                document.getElementById('water_billMonth').value = record.billMonth || "";
+                document.getElementById('water_readDate').value = record.readDate || "";
+                document.getElementById('water_nextReadDate').value = record.nextReadDate || "";
+                document.getElementById('water_billAmount').value = record.billAmount || 0;
+                document.getElementById('water_totalDegrees').value = record.totalWaterDegrees || 0;
+
+                document.getElementById('water_prevSub').value = record.prevSub || 0;
+                document.getElementById('water_currSub').value = record.currSub || 0;
+
+                currentWaterImageBase64 = record.billImage || "";
+                updateImgUI('water', !!currentWaterImageBase64);
+                calculateWater();
+            }
+
+            closeHistoryModal();
+            showToast(`已載入「${record.billMonth}」數據！`);
+        }
+
+        function copyHistoryNotice(id) {
+            const records = getHistory(activeHistoryTab);
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+
+            let text = "";
+            if (activeHistoryTab === 'elec') {
+                text = `${record.billMonth}後棟電費帳單計算結果如下：
+1樓${record.round1f}元
+2樓${record.round2f}元
+3樓${record.round3f}元
+如所列沒問題，請於下次併同房租匯款。下次照電表日${record.nextReadDate}，謝謝！`;
+            } else {
+                text = `${record.billMonth}水費${record.billAmount}元。分擔如下：19號賴家${record.touTianCost || 0}元，後棟1樓${record.round1f}元，2樓${record.round2f}元，3樓${record.round3f}元。有問題請通知我更正，若沒問題，請併入下次房租轉帳，謝謝。下次照錶日${record.nextReadDate}。`;
+            }
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`已複製「${record.billMonth}」通知！`);
+            } catch (err) { showToast("複製失敗"); }
+            document.body.removeChild(textarea);
+        }
+
+        function renderHistoryList() {
+            const records = getHistory(activeHistoryTab);
+            const container = document.getElementById('historyListContainer');
+
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        <p class="text-sm">尚無${activeHistoryTab === 'elec' ? '電費' : '水費'}歷史紀錄</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            records.forEach(item => {
+                const hasImg = !!item.billImage;
+                const isWater = activeHistoryTab === 'water';
+                html += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm hover:border-purple-200 transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="${isWater ? 'bg-sky-100 text-sky-800 border-sky-200' : 'bg-purple-100 text-purple-800 border-purple-200'} font-bold text-xs px-2.5 py-1 rounded-md border">${item.billMonth}</span>
+                                <span class="text-xs text-slate-500">拍照日: ${item.readDate || '未填'}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                ${hasImg ? `<button onclick="openImageModal('${item.billImage}')" class="text-xs bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded transition font-medium flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> 帳單
+                                </button>` : ''}
+                                <button onclick="loadHistoryItem(${item.id})" class="text-xs bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-2.5 py-1 rounded transition font-medium">帶入數據</button>
+                                <button onclick="copyHistoryNotice(${item.id})" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded transition font-medium">複製通知</button>
+                                ${isLandlordMode ? `<button onclick="deleteHistoryItem(${item.id})" title="刪除紀錄" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition ml-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 text-center text-xs mt-3 font-mono">
+                            <div class="border-r border-slate-100">
+                                <span class="text-slate-400 block text-[10px] font-sans">總帳單</span>
+                                <span class="font-bold text-slate-800">$${item.billAmount.toLocaleString()}</span>
+                            </div>
+                            <div class="border-r border-slate-100">
+                                <span class="text-slate-400 block text-[10px] font-sans">1樓</span>
+                                <span class="font-bold text-blue-600">$${item.round1f.toLocaleString()}</span>
+                            </div>
+                            <div class="border-r border-slate-100">
+                                <span class="text-slate-400 block text-[10px] font-sans">2樓</span>
+                                <span class="font-bold text-indigo-600">$${item.round2f.toLocaleString()}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] font-sans">3樓</span>
+                                <span class="font-bold text-purple-600">$${item.round3f.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // New Period
+        function createNewPeriod() {
+            if (!isLandlordMode) return;
+
+            if (activeModule === 'elec') {
+                const currPub = document.getElementById('elec_currPub').value;
+                const curr1f = document.getElementById('elec_curr1f').value;
+                const curr2f = document.getElementById('elec_curr2f').value;
+                const curr3f = document.getElementById('elec_curr3f').value;
+
+                if (currPub !== "") document.getElementById('elec_prevPub').value = currPub;
+                if (curr1f !== "") document.getElementById('elec_prev1f').value = curr1f;
+                if (curr2f !== "") document.getElementById('elec_prev2f').value = curr2f;
+                if (curr3f !== "") document.getElementById('elec_prev3f').value = curr3f;
+
+                document.getElementById('elec_currPub').value = "";
+                document.getElementById('elec_curr1f').value = "";
+                document.getElementById('elec_curr2f').value = "";
+                document.getElementById('elec_curr3f').value = "";
+
+                const nextDate = document.getElementById('elec_nextReadDate').value;
+                if (nextDate !== "") document.getElementById('elec_readDate').value = nextDate;
+                document.getElementById('elec_nextReadDate').value = "";
+
+                removeCurrentImage('elec');
+                calculateElec();
+            } else {
+                const currSub = document.getElementById('water_currSub').value;
+                if (currSub !== "") document.getElementById('water_prevSub').value = currSub;
+                document.getElementById('water_currSub').value = "";
+
+                const nextDate = document.getElementById('water_nextReadDate').value;
+                if (nextDate !== "") document.getElementById('water_readDate').value = nextDate;
+                document.getElementById('water_nextReadDate').value = "";
+
+                removeCurrentImage('water');
+                calculateWater();
+            }
+            showToast("已新建期數！舊資料已搬移至上期。");
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("已成功複製通知文字！");
+            } catch (err) { showToast("複製失敗"); }
+            document.body.removeChild(textarea);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }, 2500);
+        }
+
+        window.onload = function() {
+            applyPermissionUI();
+            calculateElec();
+            calculateWater();
+        };
+    </script>
+</body>
+</html>
