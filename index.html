@@ -1162,11 +1162,71 @@
             }, 2500);
         }
 
-        window.onload = function() {
+        // 網頁載入完成時，自動從雲端抓取最新紀錄並帶入畫面
+        window.onload = async function() {
             applyPermissionUI();
             calculateElec();
             calculateWater();
+
+            // 自動加載雲端最新資料
+            try {
+                // 1. 自動抓取電費最新一筆
+                const elecRes = await fetch(`${GAS_API_URL}?action=getHistory&type=elec`);
+                const elecRecords = await elecRes.json();
+                if (elecRecords && elecRecords.length > 0) {
+                    fetchedRecordsCache['elec'] = elecRecords;
+                    // 自動套用第一筆（最新）
+                    loadHistoryItemSilent(elecRecords[0], 'elec');
+                }
+
+                // 2. 自動抓取水費最新一筆
+                const waterRes = await fetch(`${GAS_API_URL}?action=getHistory&type=water`);
+                const waterRecords = await waterRes.json();
+                if (waterRecords && waterRecords.length > 0) {
+                    fetchedRecordsCache['water'] = waterRecords;
+                    // 自動套用第一筆（最新）
+                    loadHistoryItemSilent(waterRecords[0], 'water');
+                }
+            } catch (err) {
+                console.log("自動載入雲端最新紀錄失敗，維持預設顯示", err);
+            }
         };
+
+        // 靜默帶入資料（不跳出 Toast 提示，方便初始化使用）
+        function loadHistoryItemSilent(record, type) {
+            if (type === 'elec') {
+                document.getElementById('elec_billMonth').value = record.billMonth || "";
+                document.getElementById('elec_readDate').value = record.readDate || "";
+                document.getElementById('elec_nextReadDate').value = record.nextReadDate || "";
+                document.getElementById('elec_billAmount').value = record.billAmount || 0;
+
+                document.getElementById('elec_prevPub').value = record.prevPub || 0;
+                document.getElementById('elec_currPub').value = record.currPub || 0;
+                document.getElementById('elec_prev1f').value = record.prev1f || 0;
+                document.getElementById('elec_curr1f').value = record.curr1f || 0;
+                document.getElementById('elec_prev2f').value = record.prev2f || 0;
+                document.getElementById('elec_curr2f').value = record.curr2f || 0;
+                document.getElementById('elec_prev3f').value = record.prev3f || 0;
+                document.getElementById('elec_curr3f').value = record.curr3f || 0;
+
+                currentElecImageBase64 = record.billImage || "";
+                updateImgUI('elec', !!currentElecImageBase64);
+                calculateElec();
+            } else {
+                document.getElementById('water_billMonth').value = record.billMonth || "";
+                document.getElementById('water_readDate').value = record.readDate || "";
+                document.getElementById('water_nextReadDate').value = record.nextReadDate || "";
+                document.getElementById('water_billAmount').value = record.billAmount || 0;
+                document.getElementById('water_totalDegrees').value = record.totalWaterDegrees || 0;
+
+                document.getElementById('water_prevSub').value = record.prevSub || 0;
+                document.getElementById('water_currSub').value = record.currSub || 0;
+
+                currentWaterImageBase64 = record.billImage || "";
+                updateImgUI('water', !!currentWaterImageBase64);
+                calculateWater();
+            }
+        }
     </script>
 </body>
 </html>
